@@ -1,0 +1,4 @@
+main
+kube-config
+*hello-world*.json
+anchore-reports
