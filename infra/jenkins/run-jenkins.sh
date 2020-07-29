@@ -2,7 +2,7 @@
 
 ACTION=$1
 STACK="capstone-project-jenkins"
-TEMPLATE="jenkins.yaml"
-PARAMS="parameters.json"
+TEMPLATE="${PWD}/infra/jenkins/jenkins.yaml"
+PARAMS="${PWD}/infra/jenkins/parameters.json"
 
-./run.sh $ACTION $STACK $TEMPLATE $PARAMS
+${PWD}/infra/jenkins/run.sh $ACTION $STACK $TEMPLATE $PARAMS

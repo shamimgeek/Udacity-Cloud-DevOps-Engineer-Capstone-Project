@@ -61,7 +61,7 @@ Resources:
           - Fn::ImportValue: !Sub "${Environment}-Subnet02"
           - Fn::ImportValue: !Sub "${Environment}-Subnet03"
       RoleArn: !GetAtt ClusterInstanceRole.Arn
-      Version: 1.16
+      Version: 1.17
 
 Outputs:
 

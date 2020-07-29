@@ -2,7 +2,7 @@
 
 ACTION=$1
 STACK="capstone-project-eks-node-group"
-TEMPLATE="eks-nodegroup.yaml"
-PARAMS="parameters.json"
+TEMPLATE="${PWD}/infra/eks/eks-nodegroup.yaml"
+PARAMS="${PWD}/infra/eks/parameters.json"
 
-./run.sh $ACTION $STACK $TEMPLATE $PARAMS
+${PWD}/infra/eks/run.sh $ACTION $STACK $TEMPLATE $PARAMS

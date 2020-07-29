@@ -10,41 +10,33 @@ This is the final project to graducate at [Udacity Cloud DevOps Nanodegree](http
 - Kubernetes
 - CloudFormation
 - Makefile
-- Anchore inline scan
+- Anchore inline scan for vulnerability
+- hadolint for Dockerfile linting
 
-# Generate kube-config file
+## Prerequisite on control machine:
+- aws-cli
+- make
 
-```
-$ aws eks --region ap-southeast-2 update-kubeconfig --kubeconfig kube-config --name CapstoneEKSDev-EKS-CLUSTER
-```
+## Deployment
 
-# Check cluster info
-
-```
-$ kubectl cluster-info --kubeconfig kube-config
-Kubernetes master is running at https://66AF3943FCBF4D659CAA070022E7DF43.yl4.ap-southeast-2.eks.amazonaws.com
-CoreDNS is running at https://66AF3943FCBF4D659CAA070022E7DF43.yl4.ap-southeast-2.eks.amazonaws.com/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-
-
-```
-
-# List Pods
-
-```
-$ kubectl --kubeconfig kube-config get nodes
-NAME                                                STATUS   ROLES    AGE     VERSION
-ip-192-168-113-51.ap-southeast-2.compute.internal   Ready    <none>   7m47s   v1.16.13-eks-2ba888
-ip-192-168-186-60.ap-southeast-2.compute.internal   Ready    <none>   7m41s   v1.16.13-eks-2ba888
-ip-192-168-207-51.ap-southeast-2.compute.internal   Ready    <none>   7m45s   v1.16.13-eks-2ba888
-
-```
+  * [Create Infra in AWS](doc/create-infra.md)
+    ![jenkins_first_page](./doc/images/make.png)
+  * [Configure Jenkins host](doc/configure-jenkins-host.md)
+  * [Create Pipeline from Jenkinsfile](doc/configure-jenkins-pipeline.md)
 
 ## Check List
-  - [x] Network Template
-  - [x] EKS Template
-  - [x] Jenkins Template
-  - [x] Golang Simple app
-  - [x] Dockerfile
+## Set Up Pipeline:
+  - [x] Create Github repository with project code.
+  - [x] Use image repository to store Docker images
+## Build Docker Container:
+  - [x] Execute linting step in code pipeline
+  - [x] Build a Docker container in a pipeline
+## Successful Deployment:
+  - [x] The Docker container is deployed to a Kubernetes cluster
   - [x] K8s Deployment Template
-  - [x] Jenkinsfile
-
+  - [x] Use Blue/Green Deployment or a Rolling Deployment successfully
+  - [x] Screenshots
+## Additional steps in CI:
+  - [x] Perform additional CI steps in the pipeline outside of just linting
+  - [x] Perform security scanning of the Docker containers
+  - [x] Post-deployment add testing of your application
