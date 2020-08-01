@@ -8,7 +8,7 @@ COPY ./app/main.go /go/src/app
 
 RUN go build -o webserver .
 
-FROM alpine
+FROM alpine:edge
 WORKDIR /app
 COPY --from=builder /go/src/app/ /app/
 COPY ./app/index.html /app/
