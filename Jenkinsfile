@@ -9,8 +9,8 @@ pipeline {
     }
 
     stages {
-        // Linting
-        stage('Linting') {
+        // Linting Dockerfile
+        stage('Linting Dockerfile') {
             steps {
                 script {
                     docker.image('hadolint/hadolint:latest-debian').inside() {
@@ -31,26 +31,26 @@ pipeline {
         }
 
         // Build Docker image
-        stage('Build Image') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("shamim009/hello-world:${env.BRANCH_NAME}")
+                    dockerImage = docker.build("shamim009/hello-world:${env.BUILD_NUMBER}")
                 }
             }
         }
 
         // Scan Docker Image vulnerability with Anchore inline scan
-        stage('Scan Image') {
+        stage('Scan Docker Image') {
             steps {
-                sh "curl -s https://ci-tools.anchore.io/inline_scan-latest | bash -s -- -p -r shamim009/hello-world:${env.BRANCH_NAME}"
+                sh "curl -s https://ci-tools.anchore.io/inline_scan-latest | bash -s -- -p -r shamim009/hello-world:${env.BUILD_NUMBER}"
             }
         }
 
         // Publish Docker image to docker hub registry
-        stage('Publish Image') {
+        stage('Push Image to Registry') {
             steps {
                 script {
-                    dockerImage = docker.build("shamim009/hello-world:${env.BRANCH_NAME}")
+                    dockerImage = docker.build("shamim009/hello-world:${env.BUILD_NUMBER}")
                     docker.withRegistry('', registryCredentials) {
                         dockerImage.push()
                     }
@@ -58,23 +58,67 @@ pipeline {
             }
         }
 
-        // Deploy app to AWS EKS if it is tag
-        stage('Deploy') {
+        // Deploy app to AWS EKS
+        stage('Deploy to EKS Cluster') {
             steps {
                 dir('k8s') {
-                    withAWS(credentials: 'aws-credentials', region: 'eu-west-1') {
+                    withAWS(credentials: 'aws-credentials', region: 'ap-southeast-2') {
                         sh "aws eks --region ap-southeast-2 update-kubeconfig --name CapstoneEKSDev-EKS-CLUSTER"
-                        sh 'kubectl apply -f hello-world.yaml'
+                        sh "kubectl apply -f hello-world.yaml"
+                        sh "kubectl wait --for=condition=available --timeout=300s --all deployments"
                     }
                 }
             }
         }
 
-        // Test Deployment
-        stage('Test') {
+        // Rolling update
+        stage('Rolling Update') {
             steps {
-                script {
-                    sh 'echo Testing....'
+                withAWS(credentials: 'aws-credentials', region: 'ap-southeast-2') {
+                    sh "aws eks --region ap-southeast-2 update-kubeconfig --name CapstoneEKSDev-EKS-CLUSTER"
+                    sh "kubectl set env deployment/hello-world APP_COLOR=green BUILD_NUMBER=${env.BUILD_NUMBER}"
+                    sh "kubectl set image deployment/hello-world hello-world=shamim009/hello-world:${env.BUILD_NUMBER} --record"
+                }
+            }
+        }
+        // Wait for Successfull Rolling update
+        stage('Wait for Successfull Rolling Update') {
+            steps {
+                withAWS(credentials: 'aws-credentials', region: 'ap-southeast-2') {
+                    sh "aws eks --region ap-southeast-2 update-kubeconfig --name CapstoneEKSDev-EKS-CLUSTER"
+                    sh "kubectl wait --for=condition=available --timeout=180s --all deployments"
+                    sh "sleep 180"
+                }
+            }
+        }
+
+        // Test Deployment
+        stage('Post Deployment Test') {
+            steps {
+                withAWS(credentials: 'aws-credentials', region: 'ap-southeast-2') {
+                    sh '''#!/bin/bash
+                        aws eks --region ap-southeast-2 update-kubeconfig --name CapstoneEKSDev-EKS-CLUSTER
+                        APP_URL=$(kubectl get service hello-world | grep 'amazonaws.com' | awk '{print $4}')
+                        OUTPUT=$(curl --silent ${APP_URL})
+                        STATUS_CODE=$(curl -o /dev/null --silent -w "%{http_code}\n" ${APP_URL})
+
+                        # Test Case: 1 Check Status code
+
+                        if [ $STATUS_CODE -eq 200 ]; then
+                            echo "Test Case1: Check Status Code: OK"
+                        else 
+                            echo "Deployment failed"
+                            exit 1
+                        fi
+
+                        # Test Case: 2 Check if output contains build number
+                        if echo ${OUTPUT} |grep -q ${BUILD_NUMBER}; then
+                            echo "Test Case2: Check Build Number: OK"
+                        else 
+                            echo "Deployment failed"
+                            exit 1
+                        fi
+                    '''
                 }
             }
         }
@@ -82,7 +126,7 @@ pipeline {
         stage('Clean') {
             steps {
                 script {
-                    sh "docker rmi shamim009/hello-world:${env.BRANCH_NAME}"
+                    sh "docker rmi shamim009/hello-world:${env.BUILD_NUMBER}"
                     sh "docker system prune -f"
                 }
             }

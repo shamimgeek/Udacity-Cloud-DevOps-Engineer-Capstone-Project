@@ -18,11 +18,13 @@ case $ACTION in
     --stack-name $2 \
     --template-body file://$3 \
     --parameters file://$4
+    --region=ap-southeast-2
     ;;
 
   delete)
     aws cloudformation delete-stack \
-    --stack-name $1
+    --stack-name $2 \
+    --region=ap-southeast-2
     ;;
 
   *)

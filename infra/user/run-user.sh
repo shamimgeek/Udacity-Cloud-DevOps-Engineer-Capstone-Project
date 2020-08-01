@@ -1,5 +1,7 @@
-aws cloudformation create-stack \
---stack-name "capstone-project-user" \
---template-body file://user.yaml \
---capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" \
---region=ap-southeast-2
+#!/bin/bash
+
+ACTION=$1
+STACK="capstone-project-user"
+TEMPLATE="$PWD/infra/user/user.yaml"
+
+${PWD}/infra/user/run.sh $ACTION $STACK $TEMPLATE

@@ -8,7 +8,6 @@ case $ACTION in
     aws cloudformation create-stack \
     --stack-name $2 \
     --template-body file://$3 \
-    --parameters file://$4 \
     --region=ap-southeast-2 \
     --capabilities CAPABILITY_NAMED_IAM
     ;;
@@ -17,8 +16,6 @@ case $ACTION in
     aws cloudformation update-stack \
     --stack-name $2 \
     --template-body file://$3 \
-    --parameters file://$4 \
-    --region=ap-southeast-2
     ;;
 
   delete)
